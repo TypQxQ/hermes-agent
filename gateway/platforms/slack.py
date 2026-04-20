@@ -42,6 +42,7 @@ from gateway.platforms.base import (
     SUPPORTED_DOCUMENT_TYPES,
     safe_url_for_log,
     cache_document_from_bytes,
+    cache_video_from_bytes,
 )
 
 
@@ -1126,6 +1127,18 @@ class SlackAdapter(BasePlatformAdapter):
                     msg_type = MessageType.VOICE
                 except Exception as e:  # pragma: no cover - defensive logging
                     logger.warning("[Slack] Failed to cache audio from %s: %s", url, e, exc_info=True)
+            elif mimetype.startswith("video/") and url:
+                try:
+                    ext = "." + mimetype.split("/")[-1].split(";")[0]
+                    if ext not in (".mp4", ".mov", ".webm", ".avi", ".mkv", ".3gp"):
+                        ext = ".mp4"
+                    raw_bytes = await self._download_slack_file_bytes(url, team_id=team_id)
+                    cached_path = cache_video_from_bytes(raw_bytes, ext=ext)
+                    media_urls.append(cached_path)
+                    media_types.append(mimetype)
+                    logger.debug("[Slack] Cached user video: %s", cached_path)
+                except Exception as e:
+                    logger.warning("[Slack] Failed to cache video from %s: %s", url, e, exc_info=True)
             elif url:
                 # Try to handle as a document attachment
                 try:

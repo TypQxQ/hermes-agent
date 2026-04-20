@@ -560,6 +560,7 @@ async def cache_audio_from_url(url: str, ext: str = ".ogg", retries: int = 2) ->
 # ---------------------------------------------------------------------------
 
 DOCUMENT_CACHE_DIR = get_hermes_dir("cache/documents", "document_cache")
+VIDEO_CACHE_DIR = get_hermes_dir("cache/video", "video_cache")
 
 SUPPORTED_DOCUMENT_TYPES = {
     ".pdf": "application/pdf",
@@ -578,6 +579,11 @@ def get_document_cache_dir() -> Path:
     DOCUMENT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     return DOCUMENT_CACHE_DIR
 
+
+def get_video_cache_dir() -> Path:
+    """Return the video cache directory, creating it if it doesn't exist."""
+    VIDEO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    return VIDEO_CACHE_DIR
 
 def cache_document_from_bytes(data: bytes, filename: str) -> str:
     """
@@ -611,6 +617,17 @@ def cache_document_from_bytes(data: bytes, filename: str) -> str:
     return str(filepath)
 
 
+def cache_video_from_bytes(data: bytes, ext: str = ".mp4") -> str:
+    """
+    Save raw video bytes to the cache and return the absolute file path.
+    """
+    cache_dir = get_video_cache_dir()
+    safe_ext = ext if ext.startswith(".") else f".{ext}"
+    cached_name = f"video_{uuid.uuid4().hex[:12]}{safe_ext}"
+    filepath = cache_dir / cached_name
+    filepath.write_bytes(data)
+    return str(filepath)
+
 def cleanup_document_cache(max_age_hours: int = 24) -> int:
     """
     Delete cached documents older than *max_age_hours*.
@@ -631,6 +648,23 @@ def cleanup_document_cache(max_age_hours: int = 24) -> int:
                 pass
     return removed
 
+
+def cleanup_video_cache(max_age_hours: int = 24) -> int:
+    """
+    Delete cached videos older than *max_age_hours*.
+    """
+    import time
+    cache_dir = get_video_cache_dir()
+    cutoff = time.time() - (max_age_hours * 3600)
+    removed = 0
+    for f in cache_dir.iterdir():
+        if f.is_file() and f.stat().st_mtime < cutoff:
+            try:
+                f.unlink()
+                removed += 1
+            except OSError:
+                pass
+    return removed
 
 class MessageType(Enum):
     """Types of incoming messages."""

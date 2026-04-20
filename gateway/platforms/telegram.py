@@ -72,6 +72,7 @@ from gateway.platforms.base import (
     cache_image_from_bytes,
     cache_audio_from_bytes,
     cache_document_from_bytes,
+    cache_video_from_bytes,
     resolve_proxy_url,
     SUPPORTED_DOCUMENT_TYPES,
     utf16_len,
@@ -2627,6 +2628,24 @@ class TelegramAdapter(BasePlatformAdapter):
                 logger.info("[Telegram] Cached user audio at %s", cached_path)
             except Exception as e:
                 logger.warning("[Telegram] Failed to cache audio: %s", e, exc_info=True)
+
+        # Download video files to cache for agent processing
+        elif msg.video:
+            try:
+                file_obj = await msg.video.get_file()
+                video_bytes = await file_obj.download_as_bytearray()
+                ext = ".mp4"
+                if msg.video.file_name:
+                    _, ext = os.path.splitext(msg.video.file_name)
+                    ext = ext.lower()
+                if ext not in (".mp4", ".mov", ".webm", ".avi", ".mkv", ".3gp"):
+                    ext = ".mp4"
+                cached_path = cache_video_from_bytes(bytes(video_bytes), ext=ext)
+                event.media_urls = [cached_path]
+                event.media_types = [msg.video.mime_type or "video/mp4"]
+                logger.info("[Telegram] Cached user video at %s", cached_path)
+            except Exception as e:
+                logger.warning("[Telegram] Failed to cache video: %s", e, exc_info=True)
 
         # Download document files to cache for agent processing
         elif msg.document:
