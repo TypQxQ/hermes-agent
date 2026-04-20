@@ -73,6 +73,7 @@ from gateway.platforms.base import (
     cache_audio_from_bytes,
     cache_document_from_bytes,
     cache_video_from_bytes,
+    SUPPORTED_VIDEO_EXTENSIONS,
     resolve_proxy_url,
     SUPPORTED_DOCUMENT_TYPES,
     utf16_len,
@@ -2638,7 +2639,7 @@ class TelegramAdapter(BasePlatformAdapter):
                 if msg.video.file_name:
                     _, ext = os.path.splitext(msg.video.file_name)
                     ext = ext.lower()
-                if ext not in (".mp4", ".mov", ".webm", ".avi", ".mkv", ".3gp"):
+                if ext not in SUPPORTED_VIDEO_EXTENSIONS:
                     ext = ".mp4"
                 cached_path = cache_video_from_bytes(bytes(video_bytes), ext=ext)
                 event.media_urls = [cached_path]

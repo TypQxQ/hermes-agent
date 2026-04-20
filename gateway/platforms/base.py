@@ -15,6 +15,7 @@ import re
 import socket as _socket
 import subprocess
 import sys
+import time
 import uuid
 from abc import ABC, abstractmethod
 from urllib.parse import urlsplit
@@ -561,6 +562,8 @@ async def cache_audio_from_url(url: str, ext: str = ".ogg", retries: int = 2) ->
 
 DOCUMENT_CACHE_DIR = get_hermes_dir("cache/documents", "document_cache")
 VIDEO_CACHE_DIR = get_hermes_dir("cache/video", "video_cache")
+SUPPORTED_VIDEO_EXTENSIONS = frozenset((".mp4", ".mov", ".webm", ".avi", ".mkv", ".3gp"))
+MAX_VIDEO_BYTES = int(os.environ.get("HERMES_MAX_VIDEO_BYTES", str(200 * 1024 * 1024)))  # 200 MB default
 
 SUPPORTED_DOCUMENT_TYPES = {
     ".pdf": "application/pdf",
@@ -621,9 +624,11 @@ def cache_video_from_bytes(data: bytes, ext: str = ".mp4") -> str:
     """
     Save raw video bytes to the cache and return the absolute file path.
     """
+    if len(data) > MAX_VIDEO_BYTES:
+        raise ValueError(f"Video too large: {len(data)} bytes exceeds limit of {MAX_VIDEO_BYTES} bytes")
     cache_dir = get_video_cache_dir()
     safe_ext = ext if ext.startswith(".") else f".{ext}"
-    cached_name = f"video_{uuid.uuid4().hex[:12]}{safe_ext}"
+    cached_name = f"video_{uuid.uuid4().hex}{safe_ext}"
     filepath = cache_dir / cached_name
     filepath.write_bytes(data)
     return str(filepath)
@@ -653,7 +658,6 @@ def cleanup_video_cache(max_age_hours: int = 24) -> int:
     """
     Delete cached videos older than *max_age_hours*.
     """
-    import time
     cache_dir = get_video_cache_dir()
     cutoff = time.time() - (max_age_hours * 3600)
     removed = 0

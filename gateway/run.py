@@ -10679,7 +10679,7 @@ def _start_cron_ticker(stop_event: threading.Event, adapters=None, loop=None, in
                 if removed:
                     logger.info("Video cache cleanup: removed %d stale file(s)", removed)
             except Exception as e:
-                logger.debug("Document cache cleanup error: %s", e)
+                logger.debug("Video cache cleanup error: %s", e)
 
         stop_event.wait(timeout=interval)
     logger.info("Cron ticker stopped")

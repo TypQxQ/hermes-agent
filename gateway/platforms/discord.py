@@ -57,6 +57,7 @@ from gateway.platforms.base import (
     cache_document_from_bytes,
     cache_video_from_bytes,
     SUPPORTED_DOCUMENT_TYPES,
+    SUPPORTED_VIDEO_EXTENSIONS,
 )
 from tools.url_safety import is_safe_url
 
@@ -3120,7 +3121,7 @@ class DiscordAdapter(BasePlatformAdapter):
             elif content_type.startswith("video/"):
                 try:
                     ext = "." + content_type.split("/")[-1].split(";")[0]
-                    if ext not in (".mp4", ".mov", ".webm", ".avi", ".mkv", ".3gp"):
+                    if ext not in SUPPORTED_VIDEO_EXTENSIONS:
                         ext = ".mp4"
                     raw_bytes = await self._read_attachment_bytes(att)
                     if raw_bytes is not None:
