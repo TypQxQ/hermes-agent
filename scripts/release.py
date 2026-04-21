@@ -205,6 +205,8 @@ AUTHOR_MAP = {
     "don.rhm@gmail.com": "donrhmexe",
     "dorukardahan@hotmail.com": "dorukardahan",
     "dsocolobsky@gmail.com": "dsocolobsky",
+    "dylan.socolobsky@lambdaclass.com": "dsocolobsky",
+    "ignacio.avecilla@lambdaclass.com": "IAvecilla",
     "duerzy@gmail.com": "duerzy",
     "emozilla@nousresearch.com": "emozilla",
     "fancydirty@gmail.com": "fancydirty",
